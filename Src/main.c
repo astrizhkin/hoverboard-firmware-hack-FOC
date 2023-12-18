@@ -113,6 +113,9 @@ int16_t dc_curr;                 // global variable for Total DC Link current
 int16_t cmdL;                    // global variable for Left Command 
 int16_t cmdR;                    // global variable for Right Command 
 
+extern int16_t odom_r;
+extern int16_t odom_l;
+
 //------------------------------------------------------------------------
 // Local variables
 //------------------------------------------------------------------------
@@ -123,6 +126,8 @@ typedef struct{
   int16_t   cmd2;
   int16_t   speedR_meas;
   int16_t   speedL_meas;
+  int16_t   wheelR_cnt;
+  int16_t   wheelL_cnt;
   int16_t   batVoltage;
   int16_t   boardTemp;
   uint16_t  cmdLed;
@@ -514,6 +519,8 @@ int main(void) {
         Feedback.cmd2           = (int16_t)input2[inIdx].cmd;
         Feedback.speedR_meas	  = (int16_t)rtY_Right.n_mot;
         Feedback.speedL_meas	  = (int16_t)rtY_Left.n_mot;
+        Feedback.wheelR_cnt     = (int16_t)odom_r;
+        Feedback.wheelL_cnt     = (int16_t)odom_l;
         Feedback.batVoltage	    = (int16_t)batVoltageCalib;
         Feedback.boardTemp	    = (int16_t)board_temp_deg_c;
 
@@ -521,6 +528,7 @@ int main(void) {
           if(__HAL_DMA_GET_COUNTER(huart2.hdmatx) == 0) {
             Feedback.cmdLed     = (uint16_t)sideboard_leds_L;
             Feedback.checksum   = (uint16_t)(Feedback.start ^ Feedback.cmd1 ^ Feedback.cmd2 ^ Feedback.speedR_meas ^ Feedback.speedL_meas 
+                                           ^ Feedback.wheelR_cnt ^ Feedback.wheelL_cnt 
                                            ^ Feedback.batVoltage ^ Feedback.boardTemp ^ Feedback.cmdLed);
 
             HAL_UART_Transmit_DMA(&huart2, (uint8_t *)&Feedback, sizeof(Feedback));
@@ -530,6 +538,7 @@ int main(void) {
           if(__HAL_DMA_GET_COUNTER(huart3.hdmatx) == 0) {
             Feedback.cmdLed     = (uint16_t)sideboard_leds_R;
             Feedback.checksum   = (uint16_t)(Feedback.start ^ Feedback.cmd1 ^ Feedback.cmd2 ^ Feedback.speedR_meas ^ Feedback.speedL_meas 
+                                           ^ Feedback.wheelR_cnt ^ Feedback.wheelL_cnt 
                                            ^ Feedback.batVoltage ^ Feedback.boardTemp ^ Feedback.cmdLed);
 
             HAL_UART_Transmit_DMA(&huart3, (uint8_t *)&Feedback, sizeof(Feedback));
@@ -558,7 +567,7 @@ int main(void) {
     } else if (timeoutFlgADC) {                                                                       // 2 beeps (low pitch): ADC timeout
       beepCount(2, 24, 1);
     } else if (timeoutFlgSerial) {                                                                    // 3 beeps (low pitch): Serial timeout
-      beepCount(3, 24, 1);
+     // beepCount(3, 24, 1);
     } else if (timeoutFlgGen) {                                                                       // 4 beeps (low pitch): General timeout (PPM, PWM, Nunchuk)
       beepCount(4, 24, 1);
     } else if (TEMP_WARNING_ENABLE && board_temp_deg_c >= TEMP_WARNING) {                             // 5 beeps (low pitch): Mainboard temperature warning

@@ -29,7 +29,7 @@
 #define SERIAL_BAUD         115200      // [-] Baud rate for built-in Serial (used for the Serial Monitor)
 #define START_FRAME         0xABCD     	// [-] Start frme definition for reliable serial communication
 #define TIME_SEND           100         // [ms] Sending time interval
-#define SPEED_MAX_TEST      300         // [-] Maximum speed for testing
+#define SPEED_MAX_TEST      100         // [-] Maximum speed for testing
 #define SPEED_STEP          20          // [-] Speed step
 // #define DEBUG_RX                        // [-] Debug received data. Prints all bytes to serial (comment-out to disable)
 
@@ -57,6 +57,8 @@ typedef struct{
    int16_t  cmd2;
    int16_t  speedR_meas;
    int16_t  speedL_meas;
+   int16_t  wheelR_cnt;
+   int16_t  wheelL_cnt;
    int16_t  batVoltage;
    int16_t  boardTemp;
    uint16_t cmdLed;
@@ -121,6 +123,7 @@ void Receive()
     if (idx == sizeof(SerialFeedback)) {
         uint16_t checksum;
         checksum = (uint16_t)(NewFeedback.start ^ NewFeedback.cmd1 ^ NewFeedback.cmd2 ^ NewFeedback.speedR_meas ^ NewFeedback.speedL_meas
+                            ^ NewFeedback.wheelR_cnt ^ NewFeedback.wheelL_cnt 
                             ^ NewFeedback.batVoltage ^ NewFeedback.boardTemp ^ NewFeedback.cmdLed);
 
         // Check validity of the new data
@@ -133,6 +136,8 @@ void Receive()
             Serial.print(" 2: ");  Serial.print(Feedback.cmd2);
             Serial.print(" 3: ");  Serial.print(Feedback.speedR_meas);
             Serial.print(" 4: ");  Serial.print(Feedback.speedL_meas);
+            Serial.print(" r: ");  Serial.print(Feedback.wheelR_cnt);
+            Serial.print(" l: ");  Serial.print(Feedback.wheelL_cnt);
             Serial.print(" 5: ");  Serial.print(Feedback.batVoltage);
             Serial.print(" 6: ");  Serial.print(Feedback.boardTemp);
             Serial.print(" 7: ");  Serial.println(Feedback.cmdLed);
