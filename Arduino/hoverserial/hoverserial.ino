@@ -31,6 +31,9 @@
 #define TIME_SEND           100         // [ms] Sending time interval
 #define SPEED_MAX_TEST      100         // [-] Maximum speed for testing
 #define SPEED_STEP          20          // [-] Speed step
+#define FEEDBACK_ODOM
+#define FEEDBACK_CURRENT
+#define FEEDBACK_STATUS
 // #define DEBUG_RX                        // [-] Debug received data. Prints all bytes to serial (comment-out to disable)
 
 #include <SoftwareSerial.h>
@@ -57,11 +60,20 @@ typedef struct{
    int16_t  cmd2;
    int16_t  speedR_meas;
    int16_t  speedL_meas;
+#ifdef FEEDBACK_ODOM
    int16_t  wheelR_cnt;
    int16_t  wheelL_cnt;
+#ifdef
+#ifdef FEEDBACK_CURRENT  
+  int16_t   currR_meas;
+  int16_t   currL_meas;
+#endif
    int16_t  batVoltage;
    int16_t  boardTemp;
    uint16_t cmdLed;
+#ifdef FEEDBACK_STATUS
+   uint16_t status; 
+#endif
    uint16_t checksum;
 } SerialFeedback;
 SerialFeedback Feedback;
@@ -71,7 +83,7 @@ SerialFeedback NewFeedback;
 void setup() 
 {
   Serial.begin(SERIAL_BAUD);
-  Serial.println("Hoverboard Serial v1.0");
+  Serial.println("Hoverboard Serial v1.1");
 
   HoverSerial.begin(HOVER_SERIAL_BAUD);
   pinMode(LED_BUILTIN, OUTPUT);
@@ -123,7 +135,15 @@ void Receive()
     if (idx == sizeof(SerialFeedback)) {
         uint16_t checksum;
         checksum = (uint16_t)(NewFeedback.start ^ NewFeedback.cmd1 ^ NewFeedback.cmd2 ^ NewFeedback.speedR_meas ^ NewFeedback.speedL_meas
+                            #ifdef FEEDBACK_ODOM
                             ^ NewFeedback.wheelR_cnt ^ NewFeedback.wheelL_cnt 
+                            #endif
+                            #ifdef FEEDBACK_CURRENT
+                            ^ NewFeedback.currR_meas ^ NewFeedback.currL_meas 
+                            #endif
+                            #ifdef FEEDBACK_STATUS
+                            ^ NewFeedback.status
+                            #endif
                             ^ NewFeedback.batVoltage ^ NewFeedback.boardTemp ^ NewFeedback.cmdLed);
 
         // Check validity of the new data
@@ -136,10 +156,19 @@ void Receive()
             Serial.print(" 2: ");  Serial.print(Feedback.cmd2);
             Serial.print(" 3: ");  Serial.print(Feedback.speedR_meas);
             Serial.print(" 4: ");  Serial.print(Feedback.speedL_meas);
+            #ifdef FEEDBACK_ODOM            
             Serial.print(" r: ");  Serial.print(Feedback.wheelR_cnt);
             Serial.print(" l: ");  Serial.print(Feedback.wheelL_cnt);
+            #endif
+            #ifdef FEEDBACK_CURRENT
+            Serial.print(" cr: ");  Serial.print(Feedback.currR_meas);
+            Serial.print(" cl: ");  Serial.print(Feedback.currL_meas);
+            #endif
             Serial.print(" 5: ");  Serial.print(Feedback.batVoltage);
             Serial.print(" 6: ");  Serial.print(Feedback.boardTemp);
+            #ifdef FEEDBACK_STATUS
+            Serial.print(" s: ");  Serial.print(Feedback.status);
+            #endif
             Serial.print(" 7: ");  Serial.println(Feedback.cmdLed);
         } else {
           Serial.println("Non-valid data skipped");
