@@ -1273,7 +1273,7 @@ void usart_process_command(SerialCommand *command_in, SerialCommand *command_out
   #else
   uint16_t checksum;
   if (command_in->start == SERIAL_START_FRAME) {
-    checksum = (uint16_t)(command_in->start ^ command_in->steer ^ command_in->speed);
+    checksum = (uint16_t)(command_in->start ^ command_in->steer ^ command_in->speed);//TODO: enable? operation mode?
     if (command_in->checksum == checksum) {
       *command_out = *command_in;
       if (usart_idx == 2) {             // Sideboard USART2
@@ -1550,8 +1550,10 @@ void poweroff(void) {
     HAL_Delay(100);
   }
   saveConfig();
+  #ifdef POWER_LATCH
   HAL_GPIO_WritePin(OFF_PORT, OFF_PIN, GPIO_PIN_RESET);
   while(1) {}
+  #endif
 }
 
 

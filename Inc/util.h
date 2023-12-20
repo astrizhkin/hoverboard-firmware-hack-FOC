@@ -39,6 +39,7 @@
       uint16_t  start;
       int16_t   steer;
       int16_t   speed;
+      //TODO: control enable state? control operation mode?
       uint16_t  checksum;
     } SerialCommand;
   #endif

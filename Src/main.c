@@ -113,8 +113,15 @@ int16_t dc_curr;                 // global variable for Total DC Link current
 int16_t cmdL;                    // global variable for Left Command 
 int16_t cmdR;                    // global variable for Right Command 
 
+#ifdef FEEDBACK_STATUS
+extern uint8_t ctrlModReq;              
+extern uint8_t ctrlModReqRaw;
+#endif
+
+#ifdef FEEDBACK_ODOM
 extern int16_t odom_r;
 extern int16_t odom_l;
+#endif
 
 //------------------------------------------------------------------------
 // Local variables
@@ -126,11 +133,20 @@ typedef struct{
   int16_t   cmd2;
   int16_t   speedR_meas;
   int16_t   speedL_meas;
+#ifdef FEEDBACK_ODOM
   int16_t   wheelR_cnt;
   int16_t   wheelL_cnt;
+#endif
+#ifdef FEEDBACK_CURRENT  
+  int16_t   currR_meas;
+  int16_t   currL_meas;
+#endif
   int16_t   batVoltage;
   int16_t   boardTemp;
   uint16_t  cmdLed;
+#ifdef FEEDBACK_STATUS
+  uint16_t  status;
+#endif
   uint16_t  checksum;
 } SerialFeedback;
 static SerialFeedback Feedback;
@@ -174,7 +190,6 @@ static uint16_t rate = RATE; // Adjustable rate to support multiple drive modes 
   static uint16_t max_speed;
 #endif
 
-
 int main(void) {
 
   HAL_Init();
@@ -205,7 +220,9 @@ int main(void) {
   MX_ADC2_Init();
   BLDC_Init();        // BLDC Controller Init
 
+  #ifdef POWER_LATCH
   HAL_GPIO_WritePin(OFF_PORT, OFF_PIN, GPIO_PIN_SET);   // Activate Latch
+  #endif
   Input_Lim_Init();   // Input Limitations Init
   Input_Init();       // Input Init
 
@@ -511,6 +528,26 @@ int main(void) {
       }
     #endif
 
+    // ############ FEEDBACK STATUS ###########
+    #ifdef FEEDBACK_STATUS
+    uint16_t status = 0;
+    if(!enable)                           { status |= STATUS_ENABLED;     } else { status &= ~STATUS_ENABLED;     }
+    if(ctrlModReq==ctrlModReqRaw)         { status |= STATUS_CTRL_MODE;   } else { status &= ~STATUS_CTRL_MODE;   }
+    if(rtY_Left.z_errCode)                { status |= STATUS_LEFT_MOTOR;  } else { status &= ~STATUS_LEFT_MOTOR;  }
+    if(rtY_Right.z_errCode)               { status |= STATUS_RIGHT_MOTOR; } else { status &= ~STATUS_RIGHT_MOTOR; }
+
+    if(board_temp_deg_c >= TEMP_WARNING)  { status |= STATUS_TEMP_WARN;   } else { status &= ~STATUS_TEMP_WARN;   }
+    if(board_temp_deg_c >= TEMP_POWEROFF) { status |= STATUS_TEMP_ERR;    } else { status &= ~STATUS_TEMP_ERR;    }
+
+    if(timeoutFlgSerial)                  { status |= STATUS_CONN_TIMEOUT;} else { status &= ~STATUS_CONN_TIMEOUT;}
+    if(timeoutFlgADC)                     { status |= STATUS_ADC_TIMEOUT; } else { status &= ~STATUS_ADC_TIMEOUT; }
+    if(timeoutFlgGen)                     { status |= STATUS_GEN_TIMEOUT; } else { status &= ~STATUS_GEN_TIMEOUT; }
+
+    if(batVoltage < BAT_DEAD)             { status |= STATUS_BATTERY_DEAD;} else { status &= ~STATUS_BATTERY_DEAD;}
+    if(batVoltage < BAT_LVL1)             { status |= STATUS_BATTERY_L1;  } else { status &= ~STATUS_BATTERY_L1;  }
+    if(batVoltage < BAT_LVL2)             { status |= STATUS_BATTERY_L2;  } else { status &= ~STATUS_BATTERY_L2;  }
+    #endif
+
     // ####### FEEDBACK SERIAL OUT #######
     #if defined(FEEDBACK_SERIAL_USART2) || defined(FEEDBACK_SERIAL_USART3)
       if (main_loop_counter % 2 == 0) {    // Send data periodically every 10 ms
@@ -519,16 +556,33 @@ int main(void) {
         Feedback.cmd2           = (int16_t)input2[inIdx].cmd;
         Feedback.speedR_meas	  = (int16_t)rtY_Right.n_mot;
         Feedback.speedL_meas	  = (int16_t)rtY_Left.n_mot;
+        #ifdef FEEDBACK_ODOM
         Feedback.wheelR_cnt     = (int16_t)odom_r;
         Feedback.wheelL_cnt     = (int16_t)odom_l;
+        #endif
+        #ifdef FEEDBACK_CURRENT
+        Feedback.currR_meas     = (int16_t)left_dc_curr;
+        Feedback.currL_meas     = (int16_t)right_dc_curr;
+        #endif
         Feedback.batVoltage	    = (int16_t)batVoltageCalib;
         Feedback.boardTemp	    = (int16_t)board_temp_deg_c;
+        #ifdef FEEDBACK_STATUS
+        Feedback.status         = status;
+        #endif
 
         #if defined(FEEDBACK_SERIAL_USART2)
           if(__HAL_DMA_GET_COUNTER(huart2.hdmatx) == 0) {
             Feedback.cmdLed     = (uint16_t)sideboard_leds_L;
             Feedback.checksum   = (uint16_t)(Feedback.start ^ Feedback.cmd1 ^ Feedback.cmd2 ^ Feedback.speedR_meas ^ Feedback.speedL_meas 
+            #ifdef FEEDBACK_ODOM
                                            ^ Feedback.wheelR_cnt ^ Feedback.wheelL_cnt 
+            #endif
+            #ifdef FEEDBACK_CURRENT
+                                           ^ Feedback.currR_meas ^ Feedback.currL_meas
+            #endif
+            #ifdef FEEDBACK_STATUS
+                                           ^ Feedback.status
+            #endif
                                            ^ Feedback.batVoltage ^ Feedback.boardTemp ^ Feedback.cmdLed);
 
             HAL_UART_Transmit_DMA(&huart2, (uint8_t *)&Feedback, sizeof(Feedback));
@@ -538,7 +592,15 @@ int main(void) {
           if(__HAL_DMA_GET_COUNTER(huart3.hdmatx) == 0) {
             Feedback.cmdLed     = (uint16_t)sideboard_leds_R;
             Feedback.checksum   = (uint16_t)(Feedback.start ^ Feedback.cmd1 ^ Feedback.cmd2 ^ Feedback.speedR_meas ^ Feedback.speedL_meas 
+            #ifdef FEEDBACK_ODOM
                                            ^ Feedback.wheelR_cnt ^ Feedback.wheelL_cnt 
+            #endif
+            #ifdef FEEDBACK_CURRENT
+                                           ^ Feedback.currR_meas ^ Feedback.currL_meas
+            #endif
+            #ifdef FEEDBACK_STATUS
+                                           ^ Feedback.status
+            #endif
                                            ^ Feedback.batVoltage ^ Feedback.boardTemp ^ Feedback.cmdLed);
 
             HAL_UART_Transmit_DMA(&huart3, (uint8_t *)&Feedback, sizeof(Feedback));
