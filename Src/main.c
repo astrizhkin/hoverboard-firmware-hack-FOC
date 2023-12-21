@@ -536,7 +536,7 @@ int main(void) {
     #ifdef FEEDBACK_STATUS
     uint16_t status = 0;
     if(!enable)                           { status |= STATUS_ENABLED;         } else { status &= ~STATUS_ENABLED;     }
-    if(ctrlModReq==ctrlModReqRaw)         { status |= STATUS_CTRL_MODE;       } else { status &= ~STATUS_CTRL_MODE;   }
+    if(ctrlModReq!=ctrlModReqRaw)         { status |= STATUS_CTRL_MODE;       } else { status &= ~STATUS_CTRL_MODE;   }
     if(rtY_Left.z_errCode)                { status |= STATUS_LEFT_MOTOR_ERR;  } else { status &= ~STATUS_LEFT_MOTOR_ERR;  }
     if(rtY_Right.z_errCode)               { status |= STATUS_RIGHT_MOTOR_ERR; } else { status &= ~STATUS_RIGHT_MOTOR_ERR; }
 
