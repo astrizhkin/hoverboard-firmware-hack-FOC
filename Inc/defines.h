@@ -263,21 +263,23 @@ void PWM_ISR_CH2_Callback(void);
 
 //Status definitions
 #ifdef FEEDBACK_STATUS
-#define STATUS_ENABLED      (0x0001)
-#define STATUS_CTRL_MODE    (0x0002)
-#define STATUS_LEFT_MOTOR   (0x0004)
-#define STATUS_RIGHT_MOTOR  (0x0008)
+#define STATUS_ENABLED              (0x0001)
+#define STATUS_CTRL_MODE            (0x0002)
+#define STATUS_LEFT_MOTOR_ERR       (0x0004)
+#define STATUS_RIGHT_MOTOR_ERR      (0x0008)
 
-#define STATUS_TEMP_WARN    (0x0010)
-#define STATUS_TEMP_ERR     (0x0020)
+#define STATUS_PCB_TEMP_WARN        (0x0010)
+#define STATUS_PCB_TEMP_ERR         (0x0020)
+#define STATUS_LEFT_MOTOR_TEMP_ERR  (0x0040)
+#define STATUS_RIGHT_MOTOR_TEMP_ERR (0x0080)
 
-#define STATUS_CONN_TIMEOUT (0x0100)
-#define STATUS_ADC_TIMEOUT  (0x0200)
-#define STATUS_GEN_TIMEOUT  (0x0400)
+#define STATUS_CONN_TIMEOUT         (0x0100)
+#define STATUS_ADC_TIMEOUT          (0x0200)
+#define STATUS_GEN_TIMEOUT          (0x0400)
 
-#define STATUS_BATTERY_DEAD (0x1000)
-#define STATUS_BATTERY_L1   (0x2000)
-#define STATUS_BATTERY_L2   (0x4000)
+#define STATUS_BATTERY_DEAD         (0x1000)
+#define STATUS_BATTERY_L1           (0x2000)
+#define STATUS_BATTERY_L2           (0x4000)
 #endif
 
 #endif // DEFINES_H

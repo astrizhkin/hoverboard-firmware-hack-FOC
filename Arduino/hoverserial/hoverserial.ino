@@ -34,6 +34,7 @@
 #define FEEDBACK_ODOM
 #define FEEDBACK_CURRENT
 #define FEEDBACK_STATUS
+// #define FEEDBACK_MOTOR_TEMP
 // #define DEBUG_RX                        // [-] Debug received data. Prints all bytes to serial (comment-out to disable)
 
 #include <SoftwareSerial.h>
@@ -67,6 +68,10 @@ typedef struct{
 #ifdef FEEDBACK_CURRENT  
   int16_t   currR_meas;
   int16_t   currL_meas;
+#endif
+#ifdef FEEDBACK_MOTOR_TEMP
+  int16_t   motorR_temp;
+  int16_t   motorL_temp;
 #endif
    int16_t  batVoltage;
    int16_t  boardTemp;

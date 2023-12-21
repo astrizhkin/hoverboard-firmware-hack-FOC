@@ -141,6 +141,10 @@ typedef struct{
   int16_t   currR_meas;
   int16_t   currL_meas;
 #endif
+#ifdef FEEDBACK_MOTOR_TEMP
+  int16_t   motorR_temp;
+  int16_t   motorL_temp;
+#endif
   int16_t   batVoltage;
   int16_t   boardTemp;
   uint16_t  cmdLed;
@@ -531,21 +535,24 @@ int main(void) {
     // ############ FEEDBACK STATUS ###########
     #ifdef FEEDBACK_STATUS
     uint16_t status = 0;
-    if(!enable)                           { status |= STATUS_ENABLED;     } else { status &= ~STATUS_ENABLED;     }
-    if(ctrlModReq==ctrlModReqRaw)         { status |= STATUS_CTRL_MODE;   } else { status &= ~STATUS_CTRL_MODE;   }
-    if(rtY_Left.z_errCode)                { status |= STATUS_LEFT_MOTOR;  } else { status &= ~STATUS_LEFT_MOTOR;  }
-    if(rtY_Right.z_errCode)               { status |= STATUS_RIGHT_MOTOR; } else { status &= ~STATUS_RIGHT_MOTOR; }
+    if(!enable)                           { status |= STATUS_ENABLED;         } else { status &= ~STATUS_ENABLED;     }
+    if(ctrlModReq==ctrlModReqRaw)         { status |= STATUS_CTRL_MODE;       } else { status &= ~STATUS_CTRL_MODE;   }
+    if(rtY_Left.z_errCode)                { status |= STATUS_LEFT_MOTOR_ERR;  } else { status &= ~STATUS_LEFT_MOTOR_ERR;  }
+    if(rtY_Right.z_errCode)               { status |= STATUS_RIGHT_MOTOR_ERR; } else { status &= ~STATUS_RIGHT_MOTOR_ERR; }
 
-    if(board_temp_deg_c >= TEMP_WARNING)  { status |= STATUS_TEMP_WARN;   } else { status &= ~STATUS_TEMP_WARN;   }
-    if(board_temp_deg_c >= TEMP_POWEROFF) { status |= STATUS_TEMP_ERR;    } else { status &= ~STATUS_TEMP_ERR;    }
+    if(board_temp_deg_c >= TEMP_WARNING)  { status |= STATUS_PCB_TEMP_WARN;   } else { status &= ~STATUS_PCB_TEMP_WARN;   }
+    if(board_temp_deg_c >= TEMP_POWEROFF) { status |= STATUS_PCB_TEMP_ERR;    } else { status &= ~STATUS_PCB_TEMP_ERR;    }
+    //TODO: add motors temperatures checks
+    //if(motorL_temp_deg_c >= TEMP_POWEROFF) { status |= STATUS_LEFT_MOTOR_TEMP_ERR;    } else { status &= ~STATUS_LEFT_MOTOR_TEMP_ERR;    }
+    //if(motorR_temp_deg_c >= TEMP_POWEROFF) { status |= STATUS_RIGHT_MOTOR_TEMP_ERR;    } else { status &= ~STATUS_RIGHT_MOTOR_TEMP_ERR;    }
 
-    if(timeoutFlgSerial)                  { status |= STATUS_CONN_TIMEOUT;} else { status &= ~STATUS_CONN_TIMEOUT;}
-    if(timeoutFlgADC)                     { status |= STATUS_ADC_TIMEOUT; } else { status &= ~STATUS_ADC_TIMEOUT; }
-    if(timeoutFlgGen)                     { status |= STATUS_GEN_TIMEOUT; } else { status &= ~STATUS_GEN_TIMEOUT; }
+    if(timeoutFlgSerial)                  { status |= STATUS_CONN_TIMEOUT;    } else { status &= ~STATUS_CONN_TIMEOUT;}
+    if(timeoutFlgADC)                     { status |= STATUS_ADC_TIMEOUT;     } else { status &= ~STATUS_ADC_TIMEOUT; }
+    if(timeoutFlgGen)                     { status |= STATUS_GEN_TIMEOUT;     } else { status &= ~STATUS_GEN_TIMEOUT; }
 
-    if(batVoltage < BAT_DEAD)             { status |= STATUS_BATTERY_DEAD;} else { status &= ~STATUS_BATTERY_DEAD;}
-    if(batVoltage < BAT_LVL1)             { status |= STATUS_BATTERY_L1;  } else { status &= ~STATUS_BATTERY_L1;  }
-    if(batVoltage < BAT_LVL2)             { status |= STATUS_BATTERY_L2;  } else { status &= ~STATUS_BATTERY_L2;  }
+    if(batVoltage < BAT_DEAD)             { status |= STATUS_BATTERY_DEAD;    } else { status &= ~STATUS_BATTERY_DEAD;}
+    if(batVoltage < BAT_LVL1)             { status |= STATUS_BATTERY_L1;      } else { status &= ~STATUS_BATTERY_L1;  }
+    if(batVoltage < BAT_LVL2)             { status |= STATUS_BATTERY_L2;      } else { status &= ~STATUS_BATTERY_L2;  }
     #endif
 
     // ####### FEEDBACK SERIAL OUT #######
@@ -564,6 +571,10 @@ int main(void) {
         Feedback.currR_meas     = (int16_t)left_dc_curr;
         Feedback.currL_meas     = (int16_t)right_dc_curr;
         #endif
+        #ifdef FEEDBACK_MOTOR_TEMP
+        Feedback.motorR_temp     = (int16_t)motorR_temp_deg_c;
+        Feedback.motorL_temp     = (int16_t)motorL_temp_deg_c;
+        #endif
         Feedback.batVoltage	    = (int16_t)batVoltageCalib;
         Feedback.boardTemp	    = (int16_t)board_temp_deg_c;
         #ifdef FEEDBACK_STATUS
@@ -579,6 +590,9 @@ int main(void) {
             #endif
             #ifdef FEEDBACK_CURRENT
                                            ^ Feedback.currR_meas ^ Feedback.currL_meas
+            #endif
+            #ifdef FEEDBACK_MOTOR_TEMP
+                                           ^ Feedback.motorR_temp ^ Feedback.motorL_temp
             #endif
             #ifdef FEEDBACK_STATUS
                                            ^ Feedback.status
@@ -597,6 +611,9 @@ int main(void) {
             #endif
             #ifdef FEEDBACK_CURRENT
                                            ^ Feedback.currR_meas ^ Feedback.currL_meas
+            #endif
+            #ifdef FEEDBACK_MOTOR_TEMP
+                                           ^ Feedback.motorR_temp ^ Feedback.motorL_temp
             #endif
             #ifdef FEEDBACK_STATUS
                                            ^ Feedback.status

@@ -70,6 +70,8 @@
 #define FEEDBACK_ODOM
 #define FEEDBACK_CURRENT
 #define FEEDBACK_STATUS
+//#define FEEDBACK_MOTOR_TEMP
+
 //#define CONTROL_ENABLE
 
 // ############################### BATTERY ###############################
