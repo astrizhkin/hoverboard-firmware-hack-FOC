@@ -568,8 +568,8 @@ int main(void) {
         Feedback.wheelL_cnt     = (int16_t)odom_l;
         #endif
         #ifdef FEEDBACK_CURRENT
-        Feedback.currR_meas     = (int16_t)left_dc_curr;
-        Feedback.currL_meas     = (int16_t)right_dc_curr;
+        Feedback.currR_meas     = (int16_t)right_dc_curr;
+        Feedback.currL_meas     = (int16_t)left_dc_curr;
         #endif
         #ifdef FEEDBACK_MOTOR_TEMP
         Feedback.motorR_temp     = (int16_t)motorR_temp_deg_c;
