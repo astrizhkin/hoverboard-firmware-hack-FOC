@@ -561,8 +561,16 @@ int main(void) {
         Feedback.start	        = (uint16_t)SERIAL_START_FRAME;
         Feedback.cmd1           = (int16_t)input1[inIdx].cmd;
         Feedback.cmd2           = (int16_t)input2[inIdx].cmd;
-        Feedback.speedR_meas	  = (int16_t)rtY_Right.n_mot;
-        Feedback.speedL_meas	  = (int16_t)rtY_Left.n_mot;
+        #if defined(INVERT_R_DIRECTION)
+          Feedback.speedR_meas	  = (int16_t)rtY_Right.n_mot;
+        #else
+          Feedback.speedR_meas	  = -(int16_t)rtY_Right.n_mot;
+        #endif
+        #if defined(INVERT_L_DIRECTION)
+          Feedback.speedL_meas	  = -(int16_t)rtY_Left.n_mot;
+        #else
+          Feedback.speedL_meas	  = (int16_t)rtY_Left.n_mot;
+        #endif
         #ifdef FEEDBACK_ODOM
         Feedback.wheelR_cnt     = (int16_t)odom_r;
         Feedback.wheelL_cnt     = (int16_t)odom_l;
