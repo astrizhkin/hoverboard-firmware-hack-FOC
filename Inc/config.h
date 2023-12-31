@@ -66,7 +66,7 @@
 #define BOARD_VARIANT           0         // change if board with alternate pin mapping
 // ######################## END OF BOARD VARIANT ###############################
 
-#define POWER_LATCH
+//#define POWER_LATCH
 #define FEEDBACK_ODOM
 #define FEEDBACK_CURRENT
 #define FEEDBACK_STATUS
@@ -182,7 +182,8 @@
 
 // ############################## DEFAULT SETTINGS ############################
 // Default settings will be applied at the end of this config file if not set before
-#define INACTIVITY_TIMEOUT        30       // Minutes of not driving until poweroff. it is not very precise.
+#define INACTIVITY_TIMEOUT        10      // Minutes of not driving until poweroff. it is not very precise.
+#define INACTIVITY_POWEROFF       0       // to poweroff or not to poweroff, 1 or 0
 #define BEEPS_BACKWARD            0       // 0 or 1
 #define ADC_MARGIN                100     // ADC input margin applied on the raw ADC min and max to make sure the MIN and MAX values are reached even in the presence of noise
 #define ADC_PROTECT_TIMEOUT       100     // ADC Protection: number of wrong / missing input commands before safety state is taken
