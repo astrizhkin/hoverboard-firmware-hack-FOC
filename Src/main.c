@@ -712,7 +712,9 @@ void SystemClock_Config(void) {
   RCC_ClkInitTypeDef RCC_ClkInitStruct;
   RCC_PeriphCLKInitTypeDef PeriphClkInit;
 
-  /**Initializes the CPU, AHB and APB busses clocks
+  /**Initializes oscillator at 8/2 x 16 = 64 MHz
+   * STM32 maximum is 8/2 x 16(2...16) = 64 MHz
+   * GD32 maximum is 8/2 x 27(2...32) = 108 Mhz
     */
   RCC_OscInitStruct.OscillatorType      = RCC_OSCILLATORTYPE_HSI;
   RCC_OscInitStruct.HSIState            = RCC_HSI_ON;
@@ -733,8 +735,13 @@ void SystemClock_Config(void) {
   HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2);
 
   PeriphClkInit.PeriphClockSelection    = RCC_PERIPHCLK_ADC;
-  // PeriphClkInit.AdcClockSelection    = RCC_ADCPCLK2_DIV8;  // 8 MHz
-  PeriphClkInit.AdcClockSelection       = RCC_ADCPCLK2_DIV4;  // 16 MHz
+  /**it must be no more than 14MHz for both STM32 and GD32
+    GD32 supports prescalers 2,4,6,8,12,16
+    STM32 supports prescalers 2,4,6,8
+    */
+  //PeriphClkInit.AdcClockSelection    = RCC_ADCPCLK2_DIV8;  // 8 MHz at 64 MHz
+  PeriphClkInit.AdcClockSelection    = RCC_ADCPCLK2_DIV6; //10.(6) MHz at 64 MHz
+  //PeriphClkInit.AdcClockSelection       = RCC_ADCPCLK2_DIV4;  // 16 MHz at 64 MHz
   HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit);
 
   /**Configure the Systick interrupt time

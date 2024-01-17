@@ -640,8 +640,9 @@ void MX_ADC1_Init(void) {
   sConfig.Rank    = 4;
   HAL_ADC_ConfigChannel(&hadc1, &sConfig);
 
-  //temperature requires at least 17.1uS sampling time
-  sConfig.SamplingTime = ADC_SAMPLETIME_239CYCLES_5;
+  //temperature requires at least 17.1uS sampling time (for both STM32 and GD32)
+  //it must must 272 cycles at 16 MHz(not allowed by the spec), 239.5 cycles at 14 MHz, 182.5 cycles at 10.(6)Mhz
+  sConfig.SamplingTime = ADC_SAMPLETIME_239CYCLES_5; 
   sConfig.Channel = ADC_CHANNEL_TEMPSENSOR;  // internal temp
   sConfig.Rank    = 5;
   HAL_ADC_ConfigChannel(&hadc1, &sConfig);
