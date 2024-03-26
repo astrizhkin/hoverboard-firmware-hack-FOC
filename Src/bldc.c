@@ -78,8 +78,8 @@ static int16_t offsetrrC    = 2000;
 static int16_t offsetdcl    = 2000;
 static int16_t offsetdcr    = 2000;
 
-int16_t        batVoltage       = (400 * BAT_CELLS * BAT_CALIB_ADC) / BAT_CALIB_REAL_VOLTAGE;
-static int32_t batVoltageFixdt  = (400 * BAT_CELLS * BAT_CALIB_ADC) / BAT_CALIB_REAL_VOLTAGE << 16;  // Fixed-point filter output initialized at 400 V*100/cell = 4 V/cell converted to fixed-point
+int16_t        batVoltage       = BAT_LVL5;
+static int32_t batVoltageFixdt  = BAT_LVL5 << 16;  // Fixed-point filter output initialized at 400 V*100/cell = 4 V/cell converted to fixed-point
 
 #ifdef FEEDBACK_ODOM
 int16_t odom_l = 0;
