@@ -107,6 +107,10 @@ extern volatile uint32_t buzzerTimer;
 volatile uint32_t main_loop_counter;
 int16_t batVoltageCalib;         // global variable for calibrated battery voltage
 int16_t board_temp_deg_c;        // global variable for calibrated temperature in degrees Celsius
+#ifdef FEEDBACK_MOTOR_TEMP
+int16_t motorL_temp_deg_c;        // global variable for calibrated temperature in degrees Celsius
+int16_t motorR_temp_deg_c;        // global variable for calibrated temperature in degrees Celsius
+#endif
 int16_t left_dc_curr;            // global variable for Left DC Link current 
 int16_t right_dc_curr;           // global variable for Right DC Link current
 int16_t dc_curr;                 // global variable for Total DC Link current 
@@ -240,6 +244,13 @@ int main(void) {
   
   int32_t board_temp_adcFixdt = adc_buffer.temp << 16;  // Fixed-point filter output initialized with current ADC converted to fixed-point
   int16_t board_temp_adcFilt  = adc_buffer.temp;
+
+  #ifdef FEEDBACK_MOTOR_TEMP
+  int32_t motorL_temp_adcFixdt = adc_buffer.l_rx2 << 16;  // Fixed-point filter output initialized with current ADC converted to fixed-point
+  int16_t motorL_temp_adcFilt  = adc_buffer.l_rx2;
+  int32_t motorR_temp_adcFixdt = adc_buffer.l_tx2 << 16;  // Fixed-point filter output initialized with current ADC converted to fixed-point
+  int16_t motorR_temp_adcFilt  = adc_buffer.l_tx2;
+  #endif
 
   #ifdef MULTI_MODE_DRIVE
     if (adc_buffer.l_tx2 > input1[0].min + 50 && adc_buffer.l_rx2 > input2[0].min + 50) {
@@ -507,6 +518,16 @@ int main(void) {
     board_temp_adcFilt  = (int16_t)(board_temp_adcFixdt >> 16);  // convert fixed-point to integer
     board_temp_deg_c    = (TEMP_CAL_HIGH_DEG_C - TEMP_CAL_LOW_DEG_C) * (board_temp_adcFilt - TEMP_CAL_LOW_ADC) / (TEMP_CAL_HIGH_ADC - TEMP_CAL_LOW_ADC) + TEMP_CAL_LOW_DEG_C;
 
+    // ####### CALC MOROR TEMPERATURES #######
+    #ifdef FEEDBACK_MOTOR_TEMP
+    filtLowPass32(adc_buffer.l_rx2, MOTOR_TEMP_FILT_COEF, &motorL_temp_adcFixdt);
+    motorL_temp_adcFilt  = (int16_t)(motorL_temp_adcFixdt >> 16);  // convert fixed-point to integer
+    motorL_temp_deg_c    = (MOTOR_TEMP_CAL_HIGH_DEG_C - MOTOR_TEMP_CAL_LOW_DEG_C) * (motorL_temp_adcFilt - MOTOR_TEMP_CAL_LOW_ADC) / (MOTOR_TEMP_CAL_HIGH_ADC - MOTOR_TEMP_CAL_LOW_ADC) + MOTOR_TEMP_CAL_LOW_DEG_C;
+    filtLowPass32(adc_buffer.l_tx2, MOTOR_TEMP_FILT_COEF, &motorR_temp_adcFixdt);
+    motorR_temp_adcFilt  = (int16_t)(motorR_temp_adcFixdt >> 16);  // convert fixed-point to integer
+    motorR_temp_deg_c    = (MOTOR_TEMP_CAL_HIGH_DEG_C - MOTOR_TEMP_CAL_LOW_DEG_C) * (motorR_temp_adcFilt - MOTOR_TEMP_CAL_LOW_ADC) / (MOTOR_TEMP_CAL_HIGH_ADC - MOTOR_TEMP_CAL_LOW_ADC) + MOTOR_TEMP_CAL_LOW_DEG_C;
+    #endif
+
     // ####### CALC CALIBRATED BATTERY VOLTAGE #######
     batVoltageCalib = batVoltage * BAT_CALIB_REAL_VOLTAGE / BAT_CALIB_ADC;
 
@@ -544,9 +565,10 @@ int main(void) {
 
     if(board_temp_deg_c >= TEMP_WARNING)  { status |= STATUS_PCB_TEMP_WARN;   } else { status &= ~STATUS_PCB_TEMP_WARN;   }
     if(board_temp_deg_c >= TEMP_POWEROFF) { status |= STATUS_PCB_TEMP_ERR;    } else { status &= ~STATUS_PCB_TEMP_ERR;    }
-    //TODO: add motors temperatures checks
-    //if(motorL_temp_deg_c >= TEMP_POWEROFF) { status |= STATUS_LEFT_MOTOR_TEMP_ERR;    } else { status &= ~STATUS_LEFT_MOTOR_TEMP_ERR;    }
-    //if(motorR_temp_deg_c >= TEMP_POWEROFF) { status |= STATUS_RIGHT_MOTOR_TEMP_ERR;    } else { status &= ~STATUS_RIGHT_MOTOR_TEMP_ERR;    }
+    #ifdef FEEDBACK_MOTOR_TEMP
+    if(motorL_temp_deg_c >= MOTOR_TEMP_WARNING) { status |= STATUS_LEFT_MOTOR_TEMP_ERR;    } else { status &= ~STATUS_LEFT_MOTOR_TEMP_ERR;    }
+    if(motorR_temp_deg_c >= MOTOR_TEMP_WARNING) { status |= STATUS_RIGHT_MOTOR_TEMP_ERR;    } else { status &= ~STATUS_RIGHT_MOTOR_TEMP_ERR;    }
+    #endif
 
     if(timeoutFlgSerial)                  { status |= STATUS_CONN_TIMEOUT;    } else { status &= ~STATUS_CONN_TIMEOUT;}
     if(timeoutFlgADC)                     { status |= STATUS_ADC_TIMEOUT;     } else { status &= ~STATUS_ADC_TIMEOUT; }

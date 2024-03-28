@@ -73,6 +73,17 @@
 #define FEEDBACK_STATUS
 #define FEEDBACK_MOTOR_TEMP
 
+#ifdef FEEDBACK_MOTOR_TEMP
+#define MOTOR_TEMP_FILT_COEF          655       // temperature filter coefficient in fixed-point. coef_fixedPoint = coef_floatingPoint * 2^16. In this case 655 = 0.01 * 2^16
+#define MOTOR_TEMP_CAL_LOW_ADC        1655      // temperature 1: ADC value
+#define MOTOR_TEMP_CAL_LOW_DEG_C      358       // temperature 1: measured temperature [°C * 10]. Here 35.8 °C
+#define MOTOR_TEMP_CAL_HIGH_ADC       1588      // temperature 2: ADC value
+#define MOTOR_TEMP_CAL_HIGH_DEG_C     489       // temperature 2: measured temperature [°C * 10]. Here 48.9 °C
+
+#define MOTOR_TEMP_WARNING            750       // annoying fast beeps [°C * 10].  Here 75.0 °C
+
+#endif
+
 //#define CONTROL_ENABLE
 
 // ############################### BATTERY ###############################
