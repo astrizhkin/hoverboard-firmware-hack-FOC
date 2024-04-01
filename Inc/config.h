@@ -286,7 +286,7 @@
  *
 */
 
-#define DEBUG_SERIAL_USART2          // left sensor board cable, disable if ADC or PPM is used!
+//#define DEBUG_SERIAL_USART2          // left sensor board cable, disable if ADC, PPM or FEEDBACK_MOTOR_TEMP is used!
 //#define DEBUG_SERIAL_USART3          // right sensor board cable, disable if I2C (nunchuk or lcd) is used!
 //#define DEBUG_SERIAL_PROTOCOL        // uncomment this to send user commands to the board, change parameters and print specific signals (see comms.c for the user commands)
 // ########################### END OF DEBUG SERIAL ############################
@@ -738,6 +738,18 @@
 
 #if defined(DEBUG_SERIAL_USART3) && defined(FEEDBACK_SERIAL_USART3)
   #error DEBUG_SERIAL_USART3 and FEEDBACK_SERIAL_USART3 not allowed, choose one.
+#endif
+
+#if defined(FEEDBACK_MOTOR_TEMP) && defined(DEBUG_SERIAL_USART2)
+  #error FEEDBACK_MOTOR_TEMP and DEBUG_SERIAL_USART2 not allowed, choose one.
+#endif
+
+#if defined(FEEDBACK_MOTOR_TEMP) && defined(CONTROL_SERIAL_USART2)
+  #error FEEDBACK_MOTOR_TEMP and CONTROL_SERIAL_USART2 not allowed, choose one.
+#endif
+
+#if defined(FEEDBACK_MOTOR_TEMP) && defined(FEEDBACK_SERIAL_USART2)
+  #error FEEDBACK_MOTOR_TEMP and FEEDBACK_SERIAL_USART2 not allowed, choose one.
 #endif
 
 #if defined(DEBUG_SERIAL_USART2) && defined(DEBUG_SERIAL_USART3)
