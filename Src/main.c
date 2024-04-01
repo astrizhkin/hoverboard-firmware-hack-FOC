@@ -246,10 +246,17 @@ int main(void) {
   int16_t board_temp_adcFilt  = adc_buffer.temp;
 
   #ifdef FEEDBACK_MOTOR_TEMP
-  int32_t motorL_temp_adcFixdt = adc_buffer.l_rx2 << 16;  // Fixed-point filter output initialized with current ADC converted to fixed-point
-  int16_t motorL_temp_adcFilt  = adc_buffer.l_rx2;
-  int32_t motorR_temp_adcFixdt = adc_buffer.l_tx2 << 16;  // Fixed-point filter output initialized with current ADC converted to fixed-point
-  int16_t motorR_temp_adcFilt  = adc_buffer.l_tx2;
+    #ifdef ADC_ALTERNATE_CONNECT
+      int32_t motorL_temp_adcFixdt = adc_buffer.l_rx2 << 16;  // Fixed-point filter output initialized with current ADC converted to fixed-point
+      int16_t motorL_temp_adcFilt  = adc_buffer.l_rx2;
+      int32_t motorR_temp_adcFixdt = adc_buffer.l_tx2 << 16;  // Fixed-point filter output initialized with current ADC converted to fixed-point
+      int16_t motorR_temp_adcFilt  = adc_buffer.l_tx2;
+    #else
+      int32_t motorL_temp_adcFixdt = adc_buffer.l_tx2 << 16;  // Fixed-point filter output initialized with current ADC converted to fixed-point
+      int16_t motorL_temp_adcFilt  = adc_buffer.l_tx2;
+      int32_t motorR_temp_adcFixdt = adc_buffer.l_rx2 << 16;  // Fixed-point filter output initialized with current ADC converted to fixed-point
+      int16_t motorR_temp_adcFilt  = adc_buffer.l_rx2;
+    #endif
   #endif
 
   #ifdef MULTI_MODE_DRIVE
@@ -520,12 +527,18 @@ int main(void) {
 
     // ####### CALC MOROR TEMPERATURES #######
     #ifdef FEEDBACK_MOTOR_TEMP
-    filtLowPass32(adc_buffer.l_rx2, MOTOR_TEMP_FILT_COEF, &motorL_temp_adcFixdt);
-    motorL_temp_adcFilt  = (int16_t)(motorL_temp_adcFixdt >> 16);  // convert fixed-point to integer
-    motorL_temp_deg_c    = (MOTOR_TEMP_CAL_HIGH_DEG_C - MOTOR_TEMP_CAL_LOW_DEG_C) * (motorL_temp_adcFilt - MOTOR_TEMP_CAL_LOW_ADC) / (MOTOR_TEMP_CAL_HIGH_ADC - MOTOR_TEMP_CAL_LOW_ADC) + MOTOR_TEMP_CAL_LOW_DEG_C;
-    filtLowPass32(adc_buffer.l_tx2, MOTOR_TEMP_FILT_COEF, &motorR_temp_adcFixdt);
-    motorR_temp_adcFilt  = (int16_t)(motorR_temp_adcFixdt >> 16);  // convert fixed-point to integer
-    motorR_temp_deg_c    = (MOTOR_TEMP_CAL_HIGH_DEG_C - MOTOR_TEMP_CAL_LOW_DEG_C) * (motorR_temp_adcFilt - MOTOR_TEMP_CAL_LOW_ADC) / (MOTOR_TEMP_CAL_HIGH_ADC - MOTOR_TEMP_CAL_LOW_ADC) + MOTOR_TEMP_CAL_LOW_DEG_C;
+      #ifdef ADC_ALTERNATE_CONNECT
+        filtLowPass32(adc_buffer.l_rx2, MOTOR_TEMP_FILT_COEF, &motorL_temp_adcFixdt);
+        filtLowPass32(adc_buffer.l_tx2, MOTOR_TEMP_FILT_COEF, &motorR_temp_adcFixdt);
+      #else
+        filtLowPass32(adc_buffer.l_tx2, MOTOR_TEMP_FILT_COEF, &motorL_temp_adcFixdt);
+        filtLowPass32(adc_buffer.l_rx2, MOTOR_TEMP_FILT_COEF, &motorR_temp_adcFixdt);
+      #endif
+      motorL_temp_adcFilt  = (int16_t)(motorL_temp_adcFixdt >> 16);  // convert fixed-point to integer
+      motorL_temp_deg_c    = (MOTOR_TEMP_CAL_HIGH_DEG_C - MOTOR_TEMP_CAL_LOW_DEG_C) * (motorL_temp_adcFilt - MOTOR_TEMP_CAL_LOW_ADC) / (MOTOR_TEMP_CAL_HIGH_ADC - MOTOR_TEMP_CAL_LOW_ADC) + MOTOR_TEMP_CAL_LOW_DEG_C;
+      
+      motorR_temp_adcFilt  = (int16_t)(motorR_temp_adcFixdt >> 16);  // convert fixed-point to integer
+      motorR_temp_deg_c    = (MOTOR_TEMP_CAL_HIGH_DEG_C - MOTOR_TEMP_CAL_LOW_DEG_C) * (motorR_temp_adcFilt - MOTOR_TEMP_CAL_LOW_ADC) / (MOTOR_TEMP_CAL_HIGH_ADC - MOTOR_TEMP_CAL_LOW_ADC) + MOTOR_TEMP_CAL_LOW_DEG_C;
     #endif
 
     // ####### CALC CALIBRATED BATTERY VOLTAGE #######
