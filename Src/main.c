@@ -644,7 +644,7 @@ int main(void) {
                                            ^ Feedback.motorR_temp ^ Feedback.motorL_temp
             #endif
             #ifdef FEEDBACK_STATUS
-                                           ^ Feedback.status
+                                           ^ Feedback.status ^ Feedback.motorL_error ^ Feedback.motorR_error
             #endif
                                            ^ Feedback.batVoltage ^ Feedback.boardTemp ^ Feedback.cmdLed);
 
@@ -665,7 +665,7 @@ int main(void) {
                                            ^ Feedback.motorR_temp ^ Feedback.motorL_temp
             #endif
             #ifdef FEEDBACK_STATUS
-                                           ^ Feedback.status
+                                           ^ Feedback.status ^ Feedback.motorL_error ^ Feedback.motorR_error
             #endif
                                            ^ Feedback.batVoltage ^ Feedback.boardTemp ^ Feedback.cmdLed);
 
