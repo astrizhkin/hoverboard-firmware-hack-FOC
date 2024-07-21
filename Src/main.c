@@ -154,6 +154,8 @@ typedef struct{
   uint16_t  cmdLed;
 #ifdef FEEDBACK_STATUS
   uint16_t  status;
+  uint8_t   motorL_error;
+  uint8_t   motorR_error;
 #endif
   uint16_t  checksum;
 } SerialFeedback;
@@ -624,6 +626,8 @@ int main(void) {
         Feedback.boardTemp	    = (int16_t)board_temp_deg_c;
         #ifdef FEEDBACK_STATUS
         Feedback.status         = status;
+        Feedback.motorL_error = rtY_Left.z_errCode;
+        Feedback.motorR_error = rtY_Right.z_errCode;
         #endif
 
         #if defined(FEEDBACK_SERIAL_USART2)
