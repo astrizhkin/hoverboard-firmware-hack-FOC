@@ -133,6 +133,9 @@ extern int16_t odom_l;
 #if defined(FEEDBACK_SERIAL_USART2) || defined(FEEDBACK_SERIAL_USART3)
 typedef struct{
   uint16_t  start;
+#ifdef FEEDBACK_DATA_BITS
+  uint8_t   dataBits;
+#endif
   int16_t   cmd1;
   int16_t   cmd2;
   int16_t   speedR_meas;
@@ -154,6 +157,8 @@ typedef struct{
   uint16_t  cmdLed;
 #ifdef FEEDBACK_STATUS
   uint16_t  status;
+#endif
+#ifdef FEEDBACK_MOTOR_ERROR
   uint8_t   motorL_error;
   uint8_t   motorR_error;
 #endif
@@ -598,6 +603,9 @@ int main(void) {
     #if defined(FEEDBACK_SERIAL_USART2) || defined(FEEDBACK_SERIAL_USART3)
       if (main_loop_counter % 2 == 0) {    // Send data periodically every 10 ms
         Feedback.start	        = (uint16_t)SERIAL_START_FRAME;
+        #ifdef FEEDBACK_DATA_BITS
+          Feedback.dataBits           = 0;
+        #endif
         Feedback.cmd1           = (int16_t)input1[inIdx].cmd;
         Feedback.cmd2           = (int16_t)input2[inIdx].cmd;
         #if defined(INVERT_R_DIRECTION)
@@ -611,29 +619,49 @@ int main(void) {
           Feedback.speedL_meas	  = (int16_t)rtY_Left.n_mot;
         #endif
         #ifdef FEEDBACK_ODOM
+          #ifdef FEEDBACK_DATA_BITS
+            Feedback.dataBits          |= 1;
+          #endif
         Feedback.wheelR_cnt     = (int16_t)odom_r;
         Feedback.wheelL_cnt     = (int16_t)odom_l;
         #endif
         #ifdef FEEDBACK_CURRENT
-        Feedback.currR_meas     = (int16_t)right_dc_curr;
-        Feedback.currL_meas     = (int16_t)left_dc_curr;
+          #ifdef FEEDBACK_DATA_BITS
+            Feedback.dataBits          |= 2;
+          #endif
+          Feedback.currR_meas     = (int16_t)right_dc_curr;
+          Feedback.currL_meas     = (int16_t)left_dc_curr;
         #endif
         #ifdef FEEDBACK_MOTOR_TEMP
-        Feedback.motorR_temp     = (int16_t)motorR_temp_deg_c;
-        Feedback.motorL_temp     = (int16_t)motorL_temp_deg_c;
+          #ifdef FEEDBACK_DATA_BITS
+            Feedback.dataBits          |= 4;
+          #endif
+          Feedback.motorR_temp     = (int16_t)motorR_temp_deg_c;
+          Feedback.motorL_temp     = (int16_t)motorL_temp_deg_c;
         #endif
         Feedback.batVoltage	    = (int16_t)batVoltageCalib;
         Feedback.boardTemp	    = (int16_t)board_temp_deg_c;
         #ifdef FEEDBACK_STATUS
-        Feedback.status         = status;
-        Feedback.motorL_error = rtY_Left.z_errCode;
-        Feedback.motorR_error = rtY_Right.z_errCode;
+          #ifdef FEEDBACK_DATA_BITS
+            Feedback.dataBits          |= 8;
+          #endif
+          Feedback.status         = status;
+        #endif
+        #ifdef FEEDBACK_MOTOR_ERROR
+          #ifdef FEEDBACK_DATA_BITS
+            Feedback.dataBits          |= 16;
+          #endif
+          Feedback.motorL_error = rtY_Left.z_errCode;
+          Feedback.motorR_error = rtY_Right.z_errCode;
         #endif
 
         #if defined(FEEDBACK_SERIAL_USART2)
           if(__HAL_DMA_GET_COUNTER(huart2.hdmatx) == 0) {
             Feedback.cmdLed     = (uint16_t)sideboard_leds_L;
             Feedback.checksum   = (uint16_t)(Feedback.start ^ Feedback.cmd1 ^ Feedback.cmd2 ^ Feedback.speedR_meas ^ Feedback.speedL_meas 
+            #ifdef FEEDBACK_DATA_BITS
+                                           ^ Feedback.dataBits
+            #endif
             #ifdef FEEDBACK_ODOM
                                            ^ Feedback.wheelR_cnt ^ Feedback.wheelL_cnt 
             #endif
@@ -644,7 +672,10 @@ int main(void) {
                                            ^ Feedback.motorR_temp ^ Feedback.motorL_temp
             #endif
             #ifdef FEEDBACK_STATUS
-                                           ^ Feedback.status ^ Feedback.motorL_error ^ Feedback.motorR_error
+                                           ^ Feedback.status
+            #endif
+            #ifdef FEEDBACK_MOTOR_ERROR
+                                           ^ Feedback.motorL_error ^ Feedback.motorR_error
             #endif
                                            ^ Feedback.batVoltage ^ Feedback.boardTemp ^ Feedback.cmdLed);
 
@@ -655,6 +686,9 @@ int main(void) {
           if(__HAL_DMA_GET_COUNTER(huart3.hdmatx) == 0) {
             Feedback.cmdLed     = (uint16_t)sideboard_leds_R;
             Feedback.checksum   = (uint16_t)(Feedback.start ^ Feedback.cmd1 ^ Feedback.cmd2 ^ Feedback.speedR_meas ^ Feedback.speedL_meas 
+            #ifdef FEEDBACK_DATA_BITS
+                                           ^ Feedback.dataBits
+            #endif
             #ifdef FEEDBACK_ODOM
                                            ^ Feedback.wheelR_cnt ^ Feedback.wheelL_cnt 
             #endif
@@ -665,7 +699,10 @@ int main(void) {
                                            ^ Feedback.motorR_temp ^ Feedback.motorL_temp
             #endif
             #ifdef FEEDBACK_STATUS
-                                           ^ Feedback.status ^ Feedback.motorL_error ^ Feedback.motorR_error
+                                           ^ Feedback.status
+            #endif
+            #ifdef FEEDBACK_MOTOR_ERROR
+                                           ^ Feedback.motorL_error ^ Feedback.motorR_error
             #endif
                                            ^ Feedback.batVoltage ^ Feedback.boardTemp ^ Feedback.cmdLed);
 

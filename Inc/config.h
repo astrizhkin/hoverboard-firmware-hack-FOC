@@ -51,7 +51,7 @@
 #define ADC_CONV_CLOCK_CYCLES   (ADC_CONV_TIME_7C5)
 
 // Set the configured ADC divider. This parameter needs to be the same ADC divider as PeriphClkInit.AdcClockSelection (see main.c)
-#define ADC_CLOCK_DIV           (4)
+#define ADC_CLOCK_DIV           (6)
 
 // ADC Total conversion time: this will be used to offset TIM8 in advance of TIM1 to align the Phase current ADC measurement
 // This parameter is used in setup.c
@@ -68,10 +68,13 @@
 
 //#define POWER_LATCH
 //#define POWER_ON_MELODY
+
+//#define FEEDBACK_DATA_BITS
 #define FEEDBACK_ODOM
 #define FEEDBACK_CURRENT
 #define FEEDBACK_STATUS
 #define FEEDBACK_MOTOR_TEMP
+//#define FEEDBACK_MOTOR_ERROR
 
 #ifdef FEEDBACK_MOTOR_TEMP
 #define MOTOR_TEMP_FILT_COEF          655       // temperature filter coefficient in fixed-point. coef_fixedPoint = coef_floatingPoint * 2^16. In this case 655 = 0.01 * 2^16
@@ -188,8 +191,8 @@
 #define DIAG_ENA        1               // [-] Motor Diagnostics enable flag: 0 = Disabled, 1 = Enabled (default)
 
 // Limitation settings
-#define I_MOT_MAX       15              // [A] Maximum single motor current limit
-#define I_DC_MAX        17              // [A] Maximum stage2 DC Link current limit for Commutation and Sinusoidal types (This is the final current protection. Above this value, current chopping is applied. To avoid this make sure that I_DC_MAX = I_MOT_MAX + 2A)
+#define I_MOT_MAX       14              // [A] Maximum single motor current limit
+#define I_DC_MAX        18              // [A] Maximum stage2 DC Link current limit for Commutation and Sinusoidal types (This is the final current protection. Above this value, current chopping is applied. To avoid this make sure that I_DC_MAX = I_MOT_MAX + 2A)
 #define N_MOT_MAX       1000            // [rpm] Maximum motor speed limit
 
 // Field Weakening / Phase Advance
